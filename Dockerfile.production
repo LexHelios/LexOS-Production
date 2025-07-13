@@ -1,0 +1,72 @@
+# Production Dockerfile for LexOS Core
+FROM python:3.11-slim AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    python3-dev \
+    libpq-dev \
+    libmagic1 \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install all dependencies and create wheels
+RUN pip install --upgrade pip setuptools wheel && \
+    pip wheel --wheel-dir=/wheels -r requirements.txt
+
+# Production stage
+FROM python:3.11-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    libmagic1 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r lexos && useradd -r -g lexos lexos
+
+# Set working directory
+WORKDIR /app
+
+# Copy wheels from builder
+COPY --from=builder /wheels /wheels
+
+# Install dependencies from wheels
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir /wheels/*.whl && \
+    rm -rf /wheels
+
+# Copy application code
+COPY --chown=lexos:lexos . .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/lexos_memory /app/uploads /app/static && \
+    chown -R lexos:lexos /app
+
+# Switch to non-root user
+USER lexos
+
+# Set Python environment
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app
+
+# Expose ports
+EXPOSE 8080 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Run with startup wrapper to handle environment setup
+CMD ["python", "startup_wrapper.py"]

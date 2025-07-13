@@ -1,0 +1,23 @@
+services:
+  python-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    container_name: python-app
+    restart: unless-stopped
+    init: true
+    # env_file: ./.env  # Uncomment if .env file exists
+    ports:
+      - "8080:8080"  # Main app port (EXPOSEd in Dockerfile)
+      - "8081:8081"  # Secondary port (EXPOSEd in Dockerfile)
+    healthcheck:
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+    # Add volumes here if persistent data is needed (none detected)
+    # networks: [default]  # Default network is sufficient for a single service
+
+# No external services (databases, cache, etc.) detected in the project context.
+# If you add a database or other service, add it here and configure networking/volumes as needed.

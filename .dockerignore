@@ -1,0 +1,64 @@
+# Python bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build and distribution outputs
+dist/
+build/
+out/
+
+# Test and debug artifacts
+test/
+tests/
+*_test.go
+debug/
+*.log
+
+# Version control
+.git/
+.gitignore
+.svn/
+.hg/
+
+# Environment and secret files
+.env*
+*.env
+*.pem
+*.key
+*.crt
+
+# Local and temporary files
+.local/
+local/
+tmp/
+temp/
+*.tmp
+
+# Documentation
+README*
+*.md
+docs/
+
+# Docker and Compose files
+Dockerfile*
+docker-compose*
+
+# Project-specific config
+config.local.*
+*.local.yml
+
+# Ignore shell history
+*.history
+
+# Ignore system files
+.DS_Store
+Thumbs.db
